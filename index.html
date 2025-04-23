@@ -1,32 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-<script type="text/javascript">
-  (function() {
-    emailjs.init("hecBDI4InGk7Ycg0D");
-  })();
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - BullionFX</title>
     <link rel="shortcut icon" href="bull-svgrepo-com (1).svg" type="image/x-icon">
-    <script type="text/javascript">
-        var _smartsupp = _smartsupp || {};
-        _smartsupp.key = 'cbb58c4f3a09e07e5fbd575472b806356a91639c';
-        window.smartsupp||(function(d) {
-          var s,c,o=smartsupp=function(){ o..push(arguments)};o.=[];
-          s=d.getElementsByTagName('script')[0];c=d.createElement('script');
-          c.type='text/javascript';c.charset='utf-8';c.async=true;
-          c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
-        })(document);
-        </script>
-        <noscript> Powered by <a href="https://www.smartsupp.com" target="_blank">Smartsupp</a></noscript>
+    <!-- Clerk SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
     </style>
     <style>
-    * Style for the vertical scrollbar */
+    /* Style for the vertical scrollbar */
 ::-webkit-scrollbar {
     width: 12px; /* Adjust the width as needed */
 }
@@ -849,10 +834,6 @@
         </div>
     </div>
 
-   
-       
-
-      
 <div class="formcont">
     <form class="form" id="registerForm" onsubmit="handleRegister(event)" method="post">
         <p class="title">Register </p>
@@ -1178,13 +1159,15 @@
       <div class="otp-modal-header">
         <div class="otp-success-icon" id="otpSuccessIcon"></div>
         <h2>Verify Your Email</h2>
-        <p>We've sent a 4-digit verification code to <span class="otp-email-highlight" id="userEmailDisplay">your email</span></p>
+        <p>We've sent a verification code to <span class="otp-email-highlight" id="userEmailDisplay">your email</span></p>
       </div>
       <div class="otp-input-container">
         <input type="text" class="otp-input" maxlength="1" id="otp1" autofocus>
         <input type="text" class="otp-input" maxlength="1" id="otp2">
         <input type="text" class="otp-input" maxlength="1" id="otp3">
         <input type="text" class="otp-input" maxlength="1" id="otp4">
+        <input type="text" class="otp-input" maxlength="1" id="otp5">
+        <input type="text" class="otp-input" maxlength="1" id="otp6">
       </div>
       <div class="otp-timer">
         <span id="otpTimerText">Code expires in: 05:00</span>
@@ -1202,45 +1185,49 @@
   </div>
 
     <script>
-          const burger = document.querySelector('.burger');
-        const navLinks = document.querySelector('.nav-links');
-        const body = document.querySelector('body');
-        const backdrop = document.createElement('div');
-        backdrop.classList.add('menu-backdrop');
-
-        body.appendChild(backdrop);
-
-        burger.addEventListener('click', () => {
-            navLinks.classList.toggle('nav-active');
-            backdrop.classList.toggle('display'); // Show or hide the backdrop
-
-            // Toggle body scrolling
-            body.classList.toggle('fixed-position');
-
-            // Burger Animation
-            burger.classList.toggle('toggle');
+        // Initialize Clerk with your publishable key
+        const clerkPublishableKey = 'pk_test_cmVsZXZhbnQtcGlnbGV0LTE1LmNsZXJrLmFjY291bnRzLmRldiQ'; // Replace with your actual key
+        
+        // Initialize Clerk
+        let clerk;
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                clerk = window.Clerk.init({
+                    publishableKey: clerkPublishableKey
+                });
+                
+                await clerk.load();
+                
+                if (clerk.user) {
+                    // User is already signed in, redirect to dashboard
+                    window.location.href = '/dashboard.html';
+                }
+                
+                // Set up loading screen
+                setupLoadingScreen();
+                
+                // Set up form handlers
+                setupFormHandlers();
+                
+                // Set up OTP modal
+                setupOtpModal();
+                
+            } catch (error) {
+                console.error('Error initializing Clerk:', error);
+                document.querySelector(".message").textContent = "Authentication service unavailable. Please try again later.";
+            }
         });
-
-        backdrop.addEventListener('click', function() {
-            navLinks.classList.remove('nav-active');
-            this.classList.remove('display'); // Hide the backdrop when clicked
-            body.classList.remove('fixed-position');
-            burger.classList.remove('toggle');
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Simulate loading process
+        
+        // Function to set up loading screen
+        function setupLoadingScreen() {
             let loadingBar = document.querySelector('.loading-bar');
             let loadingScreen = document.getElementById('loading-screen');
-            let mainContent = document.getElementById('main-content');
-
             let loadingProgress = 0;
-
-            // Function to increment loading bar width
+            
             let loadingInterval = setInterval(() => {
                 if (loadingProgress < 100) {
-                    loadingProgress += 10; // Increment progress
+                    loadingProgress += 10;
                     loadingBar.style.width = loadingProgress + '%';
                 } else {
                     clearInterval(loadingInterval);
@@ -1248,349 +1235,410 @@
                         loadingScreen.style.opacity = 0;
                         setTimeout(() => {
                             loadingScreen.style.display = 'none';
-                            mainContent.style.display = 'block';
-                        }, 500); // Wait for opacity transition to complete
-                    }, 500); // Add slight delay before hiding the loading screen
+                        }, 500);
+                    }, 500);
                 }
-            }, 500); // Adjust this value to control the speed of the loading process
-        });
-    </script>
-    <script>
+            }, 300);
+        }
+        
         // Function to toggle password visibility
         function togglePasswordVisibility(inputId) {
-          const passwordInput = document.getElementById(inputId);
-          if (passwordInput.type === "password") {
-            passwordInput.type = "text";
-          } else {
-            passwordInput.type = "password";
-          }
+            const passwordInput = document.getElementById(inputId);
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+            } else {
+                passwordInput.type = "password";
+            }
         }
-
+        
         // Function to clear all error messages
         function clearErrorMessages() {
-          document.querySelector(".message").textContent = "";
-          document.getElementById("username-error").textContent = "";
-          document.getElementById("email-error").textContent = "";
-          
-          // Remove error highlighting from fields
-          document.getElementById("username").classList.remove("field-error");
-          document.getElementById("email").classList.remove("field-error");
+            document.querySelector(".message").textContent = "";
+            document.getElementById("username-error").textContent = "";
+            document.getElementById("email-error").textContent = "";
+            
+            // Remove error highlighting from fields
+            document.getElementById("username").classList.remove("field-error");
+            document.getElementById("email").classList.remove("field-error");
         }
-
-        // Get form elements
-        const username = document.getElementById("username");
-        const fullname = document.getElementById("fullname");
-        const email = document.getElementById("email");
-        const phone = document.getElementById("phone");
-        const password = document.getElementById("password");
-        const confirm_password = document.getElementById("confirm_password");
-        const messageElement = document.querySelector(".message");
-        const usernameError = document.getElementById("username-error");
-        const emailError = document.getElementById("email-error");
-
-        // OTP Modal Elements
-        const otpModalOverlay = document.getElementById("otpModalOverlay");
-        const otpCloseBtn = document.getElementById("otpCloseBtn");
-        const otpInputs = [
-          document.getElementById("otp1"),
-          document.getElementById("otp2"),
-          document.getElementById("otp3"),
-          document.getElementById("otp4")
-        ];
-        const otpVerifyBtn = document.getElementById("otpVerifyBtn");
-        const otpResendBtn = document.getElementById("otpResendBtn");
-        const otpTimerText = document.getElementById("otpTimerText");
-        const otpTimerBar = document.getElementById("otpTimerBar");
-        const userEmailDisplay = document.getElementById("userEmailDisplay");
-        const otpSuccessIcon = document.getElementById("otpSuccessIcon");
-
+        
+        // Function to set up form handlers
+        function setupFormHandlers() {
+            const registerForm = document.getElementById("registerForm");
+            
+            if (registerForm) {
+                registerForm.addEventListener("submit", handleRegister);
+            }
+            
+            // Add input event listeners to clear error messages when user starts typing
+            const username = document.getElementById("username");
+            const email = document.getElementById("email");
+            
+            username.addEventListener('input', () => {
+                document.getElementById("username-error").textContent = "";
+                username.classList.remove("field-error");
+            });
+            
+            email.addEventListener('input', () => {
+                document.getElementById("email-error").textContent = "";
+                email.classList.remove("field-error");
+            });
+        }
+        
+        // Function to handle registration
+        async function handleRegister(e) {
+            e.preventDefault();
+            
+            // Clear any previous error messages
+            clearErrorMessages();
+            
+            // Get form elements
+            const username = document.getElementById("username").value;
+            const fullname = document.getElementById("fullname").value;
+            const email = document.getElementById("email").value;
+            const phone = document.getElementById("phone").value;
+            const password = document.getElementById("password").value;
+            const confirm_password = document.getElementById("confirm_password").value;
+            const country = document.getElementById("country").value;
+            const messageElement = document.querySelector(".message");
+            
+            // Validate passwords match
+            if (password !== confirm_password) {
+                messageElement.textContent = "Confirm Password and password do not match";
+                return;
+            }
+            
+            try {
+                // Show loading state
+                const submitButton = document.querySelector(".submit");
+                const originalButtonText = submitButton.textContent;
+                submitButton.textContent = "Processing...";
+                submitButton.disabled = true;
+                
+                // Create user with Clerk
+                const signUpAttempt = await clerk.client.signUp.create({
+                    emailAddress: email,
+                    password,
+                    firstName: fullname.split(' ')[0],
+                    lastName: fullname.split(' ').slice(1).join(' '),
+                    username,
+                    unsafeMetadata: {
+                        phone,
+                        country
+                    }
+                });
+                
+                // Check if sign up requires verification
+                if (signUpAttempt.status === 'complete') {
+                    // Sign up is complete, sign in the user
+                    await clerk.setActive({
+                        session: signUpAttempt.createdSessionId
+                    });
+                    
+                    // Redirect to dashboard
+                    window.location.href = '/dashboard.html';
+                } else if (signUpAttempt.status === 'needs_verification') {
+                    // Store the sign up attempt for later use
+                    window.signUpAttempt = signUpAttempt;
+                    
+                    // Show OTP verification modal
+                    showOtpModal(email);
+                }
+                
+                // Reset button state
+                submitButton.textContent = originalButtonText;
+                submitButton.disabled = false;
+                
+            } catch (error) {
+                console.error('Error during sign up:', error);
+                
+                // Reset button state
+                const submitButton = document.querySelector(".submit");
+                submitButton.textContent = "Submit";
+                submitButton.disabled = false;
+                
+                // Handle specific error types
+                if (error.errors) {
+                    error.errors.forEach(err => {
+                        if (err.message.toLowerCase().includes('username') || err.meta?.paramName === 'username') {
+                            document.getElementById("username-error").textContent = err.message;
+                            document.getElementById("username").classList.add("field-error");
+                        } else if (err.message.toLowerCase().includes('email') || err.meta?.paramName === 'emailAddress') {
+                            document.getElementById("email-error").textContent = err.message;
+                            document.getElementById("email").classList.add("field-error");
+                        } else {
+                            messageElement.textContent = err.message;
+                        }
+                    });
+                } else {
+                    messageElement.textContent = "An error occurred. Please try again later.";
+                }
+            }
+        }
+        
+        // Function to set up OTP modal
+        function setupOtpModal() {
+            const otpModalOverlay = document.getElementById("otpModalOverlay");
+            const otpCloseBtn = document.getElementById("otpCloseBtn");
+            const otpInputs = [
+                document.getElementById("otp1"),
+                document.getElementById("otp2"),
+                document.getElementById("otp3"),
+                document.getElementById("otp4"),
+                document.getElementById("otp5"),
+                document.getElementById("otp6")
+            ];
+            const otpVerifyBtn = document.getElementById("otpVerifyBtn");
+            const otpResendBtn = document.getElementById("otpResendBtn");
+            
+            // Set up OTP input behavior
+            otpInputs.forEach((input, index) => {
+                input.addEventListener('keydown', (e) => {
+                    // Allow only numbers
+                    if (
+                        !(
+                            (e.key >= '0' && e.key <= '9') ||
+                            e.key === 'Backspace' ||
+                            e.key === 'Delete' ||
+                            e.key === 'ArrowLeft' ||
+                            e.key === 'ArrowRight' ||
+                            e.key === 'Tab'
+                        )
+                    ) {
+                        e.preventDefault();
+                    }
+                });
+                
+                input.addEventListener('input', (e) => {
+                    // Move to next input if current is filled
+                    if (e.target.value !== '' && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+                    
+                    // Check if all inputs are filled
+                    const isComplete = otpInputs.every(input => input.value.trim() !== '');
+                    otpVerifyBtn.disabled = !isComplete;
+                });
+                
+                input.addEventListener('keydown', (e) => {
+                    // Move to previous input on backspace if current is empty
+                    if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                });
+            });
+            
+            // Set up OTP verify button
+            otpVerifyBtn.addEventListener('click', async () => {
+                const enteredOtp = otpInputs.map(input => input.value).join('');
+                
+                try {
+                    // Disable verify button during verification
+                    otpVerifyBtn.disabled = true;
+                    otpVerifyBtn.textContent = 'Verifying...';
+                    
+                    // Attempt to verify the OTP with Clerk
+                    const signUpAttempt = window.signUpAttempt;
+                    
+                    if (!signUpAttempt) {
+                        throw new Error('Sign up attempt not found');
+                    }
+                    
+                    // Find the email verification attempt
+                    const emailVerification = signUpAttempt.verifications.emailAddress;
+                    
+                    // Verify the code
+                    await emailVerification.attemptVerification({
+                        code: enteredOtp
+                    });
+                    
+                    // Check if sign up is now complete
+                    if (signUpAttempt.status === 'complete') {
+                        // Show success state
+                        document.getElementById("otpSuccessIcon").style.display = 'block';
+                        otpVerifyBtn.textContent = 'Verified Successfully';
+                        
+                        // Sign in the user
+                        await clerk.setActive({
+                            session: signUpAttempt.createdSessionId
+                        });
+                        
+                        // Close modal and redirect after a delay
+                        setTimeout(() => {
+                            closeOtpModal();
+                            window.location.href = '/dashboard.html';
+                        }, 2000);
+                    } else {
+                        // Handle incomplete sign up
+                        throw new Error('Verification successful but sign up is incomplete');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error verifying OTP:', error);
+                    
+                    // Show error state
+                    otpInputs.forEach(input => {
+                        input.style.borderColor = '#ff4d4d';
+                        input.value = '';
+                    });
+                    otpInputs[0].focus();
+                    
+                    // Reset verify button
+                    otpVerifyBtn.disabled = false;
+                    otpVerifyBtn.textContent = 'Verify';
+                    
+                    // Reset error state after a delay
+                    setTimeout(() => {
+                        otpInputs.forEach(input => {
+                            input.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                        });
+                    }, 1500);
+                }
+            });
+            
+            // Set up OTP resend button
+            otpResendBtn.addEventListener('click', async () => {
+                try {
+                    // Disable resend button
+                    otpResendBtn.disabled = true;
+                    
+                    const signUpAttempt = window.signUpAttempt;
+                    
+                    if (!signUpAttempt) {
+                        throw new Error('Sign up attempt not found');
+                    }
+                    
+                    // Find the email verification attempt
+                    const emailVerification = signUpAttempt.verifications.emailAddress;
+                    
+                    // Resend the verification code
+                    await emailVerification.prepareVerification({
+                        strategy: 'email_code'
+                    });
+                    
+                    // Reset OTP inputs
+                    resetOtpInputs();
+                    
+                    // Start OTP timer
+                    startOtpTimer();
+                    
+                    // Show a temporary message
+                    const originalText = otpResendBtn.textContent;
+                    otpResendBtn.textContent = 'Sent!';
+                    setTimeout(() => {
+                        otpResendBtn.textContent = originalText;
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error('Error resending OTP:', error);
+                    otpResendBtn.disabled = false;
+                }
+            });
+            
+            // Set up close button
+            otpCloseBtn.addEventListener('click', closeOtpModal);
+            
+            // Close modal if clicking outside
+            otpModalOverlay.addEventListener('click', (e) => {
+                if (e.target === otpModalOverlay) {
+                    closeOtpModal();
+                }
+            });
+        }
+        
         // OTP Timer variables
         let otpTimer;
         let otpTimeLeft = 300; // 5 minutes in seconds
         const otpTotalTime = otpTimeLeft;
-
+        
         // Function to show OTP modal
         function showOtpModal(userEmail) {
-          userEmailDisplay.textContent = userEmail;
-          otpModalOverlay.classList.add("active");
-          document.body.style.overflow = "hidden"; // Prevent scrolling
-          otpInputs[0].focus();
-          startOtpTimer();
-          
-          // Generate a random 4-digit OTP (for demo purposes)
-          window.mockOtp = Math.floor(1000 + Math.random() * 9000).toString();
-          console.log("Mock OTP for testing:", window.mockOtp);
+            const userEmailDisplay = document.getElementById("userEmailDisplay");
+            const otpModalOverlay = document.getElementById("otpModalOverlay");
+            
+            userEmailDisplay.textContent = userEmail;
+            otpModalOverlay.classList.add("active");
+            document.body.style.overflow = "hidden"; // Prevent scrolling
+            
+            // Focus on first OTP input
+            document.getElementById("otp1").focus();
+            
+            // Start OTP timer
+            startOtpTimer();
         }
-
+        
         // Function to close OTP modal
         function closeOtpModal() {
-          otpModalOverlay.classList.remove("active");
-          document.body.style.overflow = ""; // Re-enable scrolling
-          resetOtpInputs();
-          clearInterval(otpTimer);
+            const otpModalOverlay = document.getElementById("otpModalOverlay");
+            
+            otpModalOverlay.classList.remove("active");
+            document.body.style.overflow = ""; // Re-enable scrolling
+            
+            // Reset OTP inputs
+            resetOtpInputs();
+            
+            // Clear timer
+            clearInterval(otpTimer);
         }
-
+        
         // Function to start OTP timer
         function startOtpTimer() {
-          otpTimeLeft = otpTotalTime;
-          updateOtpTimerDisplay();
-          
-          clearInterval(otpTimer);
-          otpTimer = setInterval(() => {
-            otpTimeLeft--;
+            const otpResendBtn = document.getElementById("otpResendBtn");
+            
+            otpTimeLeft = otpTotalTime;
             updateOtpTimerDisplay();
             
-            if (otpTimeLeft <= 0) {
-              clearInterval(otpTimer);
-              otpResendBtn.disabled = false;
-            }
-          }, 1000);
-          
-          otpResendBtn.disabled = true;
+            clearInterval(otpTimer);
+            otpTimer = setInterval(() => {
+                otpTimeLeft--;
+                updateOtpTimerDisplay();
+                
+                if (otpTimeLeft <= 0) {
+                    clearInterval(otpTimer);
+                    otpResendBtn.disabled = false;
+                }
+            }, 1000);
+            
+            otpResendBtn.disabled = true;
         }
-
+        
         // Function to update OTP timer display
         function updateOtpTimerDisplay() {
-          const minutes = Math.floor(otpTimeLeft / 60);
-          const seconds = otpTimeLeft % 60;
-          otpTimerText.textContent = `Code expires in: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-          
-          // Update progress bar
-          const progressPercentage = (otpTimeLeft / otpTotalTime) * 100;
-          otpTimerBar.style.width = `${progressPercentage}%`;
+            const otpTimerText = document.getElementById("otpTimerText");
+            const otpTimerBar = document.getElementById("otpTimerBar");
+            
+            const minutes = Math.floor(otpTimeLeft / 60);
+            const seconds = otpTimeLeft % 60;
+            otpTimerText.textContent = `Code expires in: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update progress bar
+            const progressPercentage = (otpTimeLeft / otpTotalTime) * 100;
+            otpTimerBar.style.width = `${progressPercentage}%`;
         }
-
+        
         // Function to reset OTP inputs
         function resetOtpInputs() {
-          otpInputs.forEach(input => {
-            input.value = '';
-            input.disabled = false;
-          });
-          otpVerifyBtn.disabled = false;
-          otpSuccessIcon.style.display = 'none';
-        }
-
-        // Function to handle OTP input
-        function setupOtpInputs() {
-          otpInputs.forEach((input, index) => {
-            input.addEventListener('keydown', (e) => {
-              // Allow only numbers
-              if (
-                !(
-                  (e.key >= '0' && e.key <= '9') ||
-                  e.key === 'Backspace' ||
-                  e.key === 'Delete' ||
-                  e.key === 'ArrowLeft' ||
-                  e.key === 'ArrowRight' ||
-                  e.key === 'Tab'
-                )
-              ) {
-                e.preventDefault();
-              }
-            });
-
-            input.addEventListener('input', (e) => {
-              // Move to next input if current is filled
-              if (e.target.value !== '' && index < otpInputs.length - 1) {
-                otpInputs[index + 1].focus();
-              }
-              
-              // Check if all inputs are filled
-              const isComplete = otpInputs.every(input => input.value.trim() !== '');
-              otpVerifyBtn.disabled = !isComplete;
-            });
-
-            input.addEventListener('keydown', (e) => {
-              // Move to previous input on backspace if current is empty
-              if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
-                otpInputs[index - 1].focus();
-              }
-            });
-          });
-        }
-
-        // Function to verify OTP
-        function verifyOtp() {
-          const enteredOtp = otpInputs.map(input => input.value).join('');
-          
-          // For demo purposes, we'll use the mock OTP we generated
-          if (enteredOtp === window.mockOtp) {
-            // Show success state
-            otpSuccessIcon.style.display = 'block';
-            otpVerifyBtn.textContent = 'Verified Successfully';
-            otpVerifyBtn.disabled = true;
-            otpInputs.forEach(input => {
-              input.disabled = true;
-            });
+            const otpInputs = [
+                document.getElementById("otp1"),
+                document.getElementById("otp2"),
+                document.getElementById("otp3"),
+                document.getElementById("otp4"),
+                document.getElementById("otp5"),
+                document.getElementById("otp6")
+            ];
+            const otpVerifyBtn = document.getElementById("otpVerifyBtn");
+            const otpSuccessIcon = document.getElementById("otpSuccessIcon");
             
-            // Close modal and redirect after a delay
-            setTimeout(() => {
-              closeOtpModal();
-              window.location.replace("/dashboard.html");
-            }, 2000);
-          } else {
-            // Show error state
             otpInputs.forEach(input => {
-              input.style.borderColor = '#ff4d4d';
-              input.value = '';
-            });
-            otpInputs[0].focus();
-            
-            // Reset error state after a delay
-            setTimeout(() => {
-              otpInputs.forEach(input => {
+                input.value = '';
+                input.disabled = false;
                 input.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-              });
-            }, 1500);
-          }
+            });
+            
+            otpVerifyBtn.disabled = true;
+            otpVerifyBtn.textContent = 'Verify';
+            otpSuccessIcon.style.display = 'none';
         }
-
-        // Function to resend OTP
-        function resendOtp() {
-          resetOtpInputs();
-          startOtpTimer();
-          
-          // Generate a new mock OTP
-          window.mockOtp = Math.floor(1000 + Math.random() * 9000).toString();
-          console.log("New mock OTP for testing:", window.mockOtp);
-          
-          // Show a temporary message
-          const originalText = otpResendBtn.textContent;
-          otpResendBtn.textContent = 'Sent!';
-          setTimeout(() => {
-            otpResendBtn.textContent = originalText;
-          }, 2000);
-        }
-
-        const handleRegister = async (e) => {
-          e.preventDefault();
-          
-          // Clear any previous error messages
-          clearErrorMessages();
-          
-          // Validate passwords match
-          if (password.value !== confirm_password.value) {
-            messageElement.textContent = "Confirm Password and password do not match";
-            return;
-          }
-          
-          try {
-            // Show loading state
-            const submitButton = document.querySelector(".submit");
-            const originalButtonText = submitButton.textContent;
-            submitButton.textContent = "Processing...";
-            submitButton.disabled = true;
-            
-            // For demo purposes, we'll simulate a successful registration
-            // In a real application, you would make the API call here
-            
-            // Simulate API delay
-            setTimeout(() => {
-              // Show OTP verification modal
-              showOtpModal(email.value);
-              
-              // Reset button state
-              submitButton.textContent = originalButtonText;
-              submitButton.disabled = false;
-            }, 1500);
-            
-            /* Original API call code - commented out for demo
-            const res = await fetch(
-              "https://bullion-fx-server.onrender.com/api/v1/user/register",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  username: username.value,
-                  fullname: fullname.value,
-                  email: email.value,
-                  phoneNumber: phone.value,
-                  password: password.value,
-                }),
-              }
-            );
-            
-            const response = await res.json();
-            
-            if (response.success) {
-              // Store user data
-              localStorage.setItem("user", JSON.stringify(response.data));
-              
-              // Show OTP verification modal instead of redirecting
-              showOtpModal(email.value);
-            } else {
-              // Reset button state
-              submitButton.textContent = originalButtonText;
-              submitButton.disabled = false;
-              
-              const errorMsg = response.message || "Registration failed. Please try again.";
-              
-              // Check for specific error types and display them in the appropriate place
-              if (errorMsg.toLowerCase().includes("username") && errorMsg.toLowerCase().includes("taken") || 
-                  errorMsg.toLowerCase().includes("username") && errorMsg.toLowerCase().includes("exists")) {
-                usernameError.textContent = "This username is already taken. Please choose another one.";
-                username.classList.add("field-error");
-              } 
-              else if (errorMsg.toLowerCase().includes("email") && errorMsg.toLowerCase().includes("taken") || 
-                       errorMsg.toLowerCase().includes("email") && errorMsg.toLowerCase().includes("exists") ||
-                       errorMsg.toLowerCase().includes("email") && errorMsg.toLowerCase().includes("already in use")) {
-                emailError.textContent = "This email address is already registered. Please use a different email or try logging in.";
-                email.classList.add("field-error");
-              }
-              else {
-                // For other errors, display in the general message area
-                messageElement.textContent = errorMsg;
-              }
-            }
-            */
-          } catch (error) {
-            console.error("Error:", error);
-            messageElement.textContent = "An error occurred. Please try again later.";
-            
-            // Reset button state
-            const submitButton = document.querySelector(".submit");
-            submitButton.textContent = "Submit";
-            submitButton.disabled = false;
-          }
-        };
-
-        // Initialize form elements when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-          // Form elements are already initialized at the top
-          
-          // Attach the form submission handler
-          const registerForm = document.getElementById("registerForm");
-          if (registerForm) {
-            registerForm.addEventListener("submit", handleRegister);
-          }
-          
-          // Add input event listeners to clear error messages when user starts typing
-          username.addEventListener('input', () => {
-            usernameError.textContent = "";
-            username.classList.remove("field-error");
-          });
-          
-          email.addEventListener('input', () => {
-            emailError.textContent = "";
-            email.classList.remove("field-error");
-          });
-          
-          // Set up OTP modal event listeners
-          setupOtpInputs();
-          
-          otpCloseBtn.addEventListener('click', closeOtpModal);
-          otpVerifyBtn.addEventListener('click', verifyOtp);
-          otpResendBtn.addEventListener('click', resendOtp);
-          
-          // Close modal if clicking outside
-          otpModalOverlay.addEventListener('click', (e) => {
-            if (e.target === otpModalOverlay) {
-              closeOtpModal();
-            }
-          });
-        });
     </script>
 </body>
 </html>
